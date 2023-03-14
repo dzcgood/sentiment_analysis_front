@@ -1,7 +1,7 @@
 <template>
   <div>
     <!--输入部分-->
-    <div class="input">
+    <div class="input" ref="loading">
       <div class="wrapper">
         <el-row id="info" align="middle">
           <el-col :span="5">
@@ -27,7 +27,7 @@
             />
           </el-col>
         </el-row>
-        <el-row justify="space-between" align="middle" id="do_analysis">
+        <el-row align="middle" justify="space-between" id="do_analysis">
           <el-col :span="4" style="color: #c8c9cc">
             <span>最多输入</span>
             <span style="color: #eebe77">140</span>
@@ -47,7 +47,7 @@
               fit
             />
           </el-col>
-          <el-col :span="2" style="color: #f89898; text-align: center">{{
+          <el-col :span="2" :style="imgUrlAndLabel[resultId].style">{{
             imgUrlAndLabel[resultId].label
           }}</el-col>
         </el-row>
@@ -82,9 +82,19 @@
               <el-table-column fixed prop="date" label="Date" />
               <el-table-column prop="content" label="Content" />
               <el-table-column prop="result" label="Result" />
-              <el-table-column fixed="right" label="Operation" width="120"  type="index">
+              <el-table-column
+                fixed="right"
+                label="Operation"
+                width="120"
+                type="index"
+              >
                 <template #default="scope">
-                    <el-button type="info" icon="Delete" circle  @click="removeOneHistory(scope.$index)"/>
+                  <el-button
+                    type="info"
+                    icon="Delete"
+                    circle
+                    @click="removeOneHistory(scope.$index)"
+                  />
                 </template>
               </el-table-column>
             </el-table>
@@ -97,12 +107,16 @@
 
 <script>
 import { ref, reactive } from "vue";
+import axios from "axios";
+import { ElLoading, ElMessage } from "element-plus";
+
 export default {
   setup() {
     const placeholder = reactive([
       "今天天气真好，心情舒畅！",
       "一出门摔了一跤，真是服了。",
-      "明天会下雨。",
+      "听故事的时候,你总喜欢眼巴巴的问,后来呢,可是当后来,自己成为讲故事的人,才发现,后来故事和话语就在嘴边,后来眼泪几度泪凝于睫,是真的说不下去了。。",
+      "原来介玩意是叫草子糕啊!我活了30多年一直以为是槽子糕了!涨姿势了!",
     ]);
     const curIndex = ref(0);
     const input = ref("");
@@ -112,41 +126,76 @@ export default {
       input.value = "";
     }
 
+    const imgUrlAndLabel = reactive([
+      {
+        imgUrl: require("@/assets/happy.svg"),
+        label: "积极",
+        style: "color:#d81e06; text-align:center; font-weight:bold;"
+      },
+      {
+        imgUrl: require("@/assets/mad.svg"),
+        label: "愤怒",
+        style: "color:#d81e06; text-align:center; font-weight:bold;"
+      },
+      {
+        imgUrl: require("@/assets/sad.svg"),
+        label: "悲伤",
+        style: "color:#000000; text-align:center; font-weight:bold;"
+      },
+      {
+        imgUrl: require("@/assets/fear.svg"),
+        label: "恐惧",
+        style: "color:#000000; text-align:center; font-weight:bold;"
+      },
+      {
+        imgUrl: require("@/assets/surprised.svg"),
+        label: "惊奇",
+        style: "color:#75EAE4; text-align:center; font-weight:bold;"
+      },
+      {
+        imgUrl: require("@/assets/neutral.svg"),
+        label: "无情绪",
+        style: "color:#000000; text-align:center; font-weight:bold;"
+      },
+    ]);
+
+    const resultId = ref(0);
+
+    // 需要显示loading的dom元素
+    const loading = ref(null);
+
     function analysis() {
       if (input.value == "") {
         input.value = placeholder[curIndex.value];
       }
       console.log(input.value);
+      const loadingIcon = ElLoading.service({
+        // 一定得写loading.value 因为是ref
+        target: loading.value,
+        fullscreen: false,
+        text: "Loading",
+      });
+      axios
+        .post("/Api/sentiment_analysis", {
+          content: input.value,
+        })
+        .then(function (response) {
+          console.log(response);
+          resultId.value = response.data["pred"];
+          // 关闭loading
+          loadingIcon.close();
+          // Message消息提示
+          ElMessage({
+            message: "分析完成",
+            type: "success",
+            appendTo: loading.value,
+            center: true
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     }
-
-    const imgUrlAndLabel = reactive([
-      {
-        imgUrl: require("@/assets/happy.svg"),
-        label: "积极",
-      },
-      {
-        imgUrl: require("@/assets/mad.svg"),
-        label: "愤怒",
-      },
-      {
-        imgUrl: require("@/assets/sad.svg"),
-        label: "悲伤",
-      },
-      {
-        imgUrl: require("@/assets/fear.svg"),
-        label: "恐惧",
-      },
-      {
-        imgUrl: require("@/assets/surprised.svg"),
-        label: "惊奇",
-      },
-      {
-        imgUrl: require("@/assets/neutral.svg"),
-        label: "无情绪",
-      },
-    ]);
-
-    const resultId = ref(4);
 
     const tableData = reactive([
       {
@@ -211,10 +260,9 @@ export default {
       },
     ]);
 
-
     function removeOneHistory(index) {
-        console.log(index)
-        tableData.splice(index, 1)
+      console.log(index);
+      tableData.splice(index, 1);
     }
     return {
       input,
@@ -225,7 +273,8 @@ export default {
       tableData,
       imgUrlAndLabel,
       resultId,
-      removeOneHistory
+      loading,
+      removeOneHistory,
     };
   },
 };
@@ -242,6 +291,7 @@ export default {
 }
 
 .wrapper {
+  box-sizing: border-box;
   box-shadow: var(--el-box-shadow-light);
   width: 100%;
   padding: 10px;
