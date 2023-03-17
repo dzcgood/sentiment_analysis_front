@@ -81,7 +81,11 @@ export default {
     }
     // 恢复之前选择的menuId界面
     onMounted(() => {
-      cur_index.value = JSON.parse(localStorage.getItem("menuId"));
+      var index = JSON.parse(localStorage.getItem("menuId"));
+      if(index != null) {
+        cur_index.value = index
+      }
+      
     });
 
     return { menu, cur_index, selectMenu };

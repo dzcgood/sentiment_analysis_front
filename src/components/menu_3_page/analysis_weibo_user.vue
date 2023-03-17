@@ -86,6 +86,7 @@
 
       <!--Echarts和词云-->
       <div class="wrapper" v-if="resultId != -1">
+      <!-- <div class="wrapper"> -->
         <div class="shadow">
           <el-row style="text-align: center">
             <el-col :span="12">
@@ -96,7 +97,13 @@
                 :style="myChartStyle"
               ></div>
             </el-col>
-            <el-col :span="12"> 我是词云 </el-col>
+            <el-col :span="12">
+              <!--词云-->
+              <el-image
+                style="width: 300px; height: 300px"
+                :src="wordCloudUrl"
+              />
+            </el-col>
           </el-row>
         </div>
       </div>
@@ -120,63 +127,63 @@
 
       <!--各条微博的情感分析-->
 
-        <div
-          v-for="(item, index) in weiboItems"
-          :key="index"
-          class="tweetWrapper"
-          :ref="setItemRef"
-        >
-          <!--展示部分-->
-          <div class="shadow">
-            <!--用户信息-->
-            <el-row align="bottom">
-              <el-col :span="1" style="height: 50px">
-                <el-avatar :size="50" :src="weiboUser.avatar_hd" />
-              </el-col>
-              <el-col :span="23" id="user-info">
-                <el-row>
-                  <span id="nickname">{{ weiboUser.nick_name }}</span>
-                </el-row>
-                <el-row id="desc">
-                  <span style="margin: 0 5px 0 0">{{
-                    weiboItems[index].created_at
-                  }}</span>
-                  <span>{{ weiboItems[index].ip_location }}</span>
-                </el-row>
-              </el-col>
-            </el-row>
-            <el-row style="margin: 20px 0">
-              <el-col :span="22" :offset="1">
-                <el-card
-                  shadow="hover"
-                  style="border: 2px dashed var(--el-border-color)"
-                >
-                  <span>{{ weiboItems[index].content }}</span>
-                </el-card>
-              </el-col>
-            </el-row>
+      <div
+        v-for="(item, index) in weiboItems"
+        :key="index"
+        class="tweetWrapper"
+        :ref="setItemRef"
+      >
+        <!--展示部分-->
+        <div class="shadow">
+          <!--用户信息-->
+          <el-row align="bottom">
+            <el-col :span="1" style="height: 50px">
+              <el-avatar :size="50" :src="weiboUser.avatar_hd" />
+            </el-col>
+            <el-col :span="23" id="user-info">
+              <el-row>
+                <span id="nickname">{{ weiboUser.nick_name }}</span>
+              </el-row>
+              <el-row id="desc">
+                <span style="margin: 0 5px 0 0">{{
+                  weiboItems[index].created_at
+                }}</span>
+                <span>{{ weiboItems[index].ip_location }}</span>
+              </el-row>
+            </el-col>
+          </el-row>
+          <el-row style="margin: 20px 0">
+            <el-col :span="22" :offset="1">
+              <el-card
+                shadow="hover"
+                style="border: 2px dashed var(--el-border-color)"
+              >
+                <span>{{ weiboItems[index].content }}</span>
+              </el-card>
+            </el-col>
+          </el-row>
 
-            <el-row align="middle" id="result" v-if="predLabels[index] != -1">
-              <el-col :span="3">情感分析结果</el-col>
-              <el-col :span="1">
-                <el-image
-                  style="width: 50px; height: 50px"
-                  :src="imgUrlAndLabel[predLabels[index]].imgUrl"
-                  fit
-                />
-              </el-col>
-              <el-col :span="2" style="color: #f89898; text-align: center">{{
-                imgUrlAndLabel[predLabels[index]].label
-              }}</el-col>
-            </el-row>
-          </div>
+          <el-row align="middle" id="result" v-if="predLabels[index] != -1">
+            <el-col :span="3">情感分析结果</el-col>
+            <el-col :span="1">
+              <el-image
+                style="width: 50px; height: 50px"
+                :src="imgUrlAndLabel[predLabels[index]].imgUrl"
+                fit
+              />
+            </el-col>
+            <el-col :span="2" :style="imgUrlAndLabel[predLabels[index]].style">{{
+              imgUrlAndLabel[predLabels[index]].label
+            }}</el-col>
+          </el-row>
         </div>
+      </div>
     </el-scrollbar>
   </div>
 </template>
 
 <script>
-import { ref, reactive } from "vue";
+import { ref, reactive, onUpdated} from "vue";
 import * as echarts from "echarts";
 import { ElLoading, ElMessage } from "element-plus";
 import axios from "axios";
@@ -187,8 +194,9 @@ export default {
       userId: "",
       cookie: "",
     });
-
+    var urlTemp = ref("")
     const imgBaseUrl = "https://image.baidu.com/search/down?url=";
+    var wordCloudUrl = ref("");
 
     const weiboUser = reactive({
       nick_name: "DzcGood",
@@ -249,7 +257,6 @@ export default {
           cookie: input.cookie,
         })
         .then(function (response) {
-          console.log(response);
           const data = response.data;
 
           // 设置微博用户的信息
@@ -260,6 +267,14 @@ export default {
           weiboUser.description = data.user.description;
           weiboUser.created_at = data.user.created_at;
           weiboUser.avatar_hd = imgBaseUrl + data.user.avatar_hd;
+
+          // const tweetObj = JSON.parse(data);
+          // for (const key in tweetObj) {
+          //   if (key.startsWith("tweet")) {
+          //     console.log(`${key}: ${jsonObj[key]}`);
+          //     weiboItems.push(tweetObj[key]);
+          //   }
+          // }
 
           weiboItems.push(data.tweet0);
           weiboItems.push(data.tweet1);
@@ -287,6 +302,7 @@ export default {
         });
     }
 
+    // 微博内容
     const weiboContent = ref(
       "wow女神又有新片了！！！[送花花][送花花]开机现场的状态也太好了吧，红色卫衣真是红气养人，承包女神的这个笑容了[爱你][抱一抱]算起来已经有快4年没在影院大银幕上看到舒淇了，而且这次还是犯罪悬疑题材，咱就是一整个狠狠期待！希望能早日在影院看到这部《黎明时分见》，迫不及待想看到银幕上的女神舒淇了！"
     );
@@ -296,37 +312,37 @@ export default {
         imgUrl: require("@/assets/happy.svg"),
         label: "积极",
         style:
-          "color:#d81e06; text-align:center; font-weight:bold; margin-top: 100px",
+          "color:#d81e06; text-align:center; font-weight:bold; margin-top: 40px",
       },
       {
         imgUrl: require("@/assets/mad.svg"),
         label: "愤怒",
         style:
-          "color:#d81e06; text-align:center; font-weight:bold; margin-top: 100px",
+          "color:#d81e06; text-align:center; font-weight:bold; margin-top: 40px",
       },
       {
         imgUrl: require("@/assets/sad.svg"),
         label: "悲伤",
         style:
-          "color:#000000; text-align:center; font-weight:bold; margin-top: 100px",
+          "color:#000000; text-align:center; font-weight:bold; margin-top: 40px",
       },
       {
         imgUrl: require("@/assets/fear.svg"),
         label: "恐惧",
         style:
-          "color:#000000; text-align:center; font-weight:bold; margin-top: 100px",
+          "color:#000000; text-align:center; font-weight:bold; margin-top: 40px",
       },
       {
         imgUrl: require("@/assets/surprised.svg"),
         label: "惊奇",
         style:
-          "color:#75EAE4; text-align:center; font-weight:bold; margin-top: 100px",
+          "color:#75EAE4; text-align:center; font-weight:bold; margin-top: 40px",
       },
       {
         imgUrl: require("@/assets/neutral.svg"),
         label: "无情绪",
         style:
-          "color:#000000; text-align:center; font-weight:bold; margin-top: 100px",
+          "color:#000000; text-align:center; font-weight:bold; margin-top: 40px",
       },
     ]);
 
@@ -363,10 +379,14 @@ export default {
 
     let itemRefs = [];
     const setItemRef = (el) => {
-      if(el) {
+      if (el) {
         itemRefs.push(el);
       }
     };
+    var wordList = reactive([
+      ["你好", 6],
+      ["烦人", 12],
+    ]);
 
     function analysisTweets() {
       if (weiboItems.length == 0) {
@@ -379,15 +399,15 @@ export default {
       }
 
       let loadingIcons = [];
-      console.log(weiboItems)
-      console.log(itemRefs);
+      // console.log(weiboItems);
+      // console.log(itemRefs);
       for (var i = 0; i < itemRefs.length; i++) {
         loadingIcons.push(
           ElLoading.service({
             // 一定得写loading.value 因为是ref
             target: itemRefs[i],
             fullscreen: false,
-            text: "Loading",
+            text: "Loading, 请耐心等待约30秒",
           })
         );
       }
@@ -404,14 +424,12 @@ export default {
         })
         .then(function (response) {
           const data = response.data;
-          console.log(data.labels);
+          // console.log(data);
 
           for (var i = 0; i < data.labels.length; i++) {
             predLabels[i] = data.labels[i];
           }
           // 关闭loading
-          // weiboAnalysisLoadingIcon.close();
-
           for (var i = 0; i < loadingIcons.length; i++) {
             loadingIcons[i].close();
           }
@@ -437,14 +455,19 @@ export default {
             if (pieData[predLabels[i]].value > maxNum) {
               maxNum = pieData[predLabels[i]].value;
               maxIndex = predLabels[i];
-              console.log("maxIndex = " + maxIndex);
+              // console.log("maxIndex = " + maxIndex);
             }
           }
 
           // 显示饼图
           resultId.value = maxIndex;
-          console.log("resultId = " + resultId.value);
           drawPieTable();
+
+          //词云
+
+          wordCloudUrl.value = data.imgUrl;
+
+          // console.log(wordCloudUrl);
         })
         .catch(function (error) {
           console.log(error);
@@ -500,8 +523,14 @@ export default {
       });
     }
 
+
+
+
+
     return {
       input,
+      urlTemp,
+      wordCloudUrl,
       spiderGetUser,
       itemRefs,
       setItemRef,
@@ -517,6 +546,7 @@ export default {
       predLabels,
       weiboAnalysisLoading,
       myPieTable,
+      wordList,
     };
   },
 };

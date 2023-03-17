@@ -4,7 +4,7 @@
     <div class="input" ref="loading">
       <div class="wrapper">
         <el-row id="info" align="middle">
-          <el-col :span="5">
+          <el-col :span="6">
             <span>请输入一段需要分析的文本：</span>
           </el-col>
 
@@ -62,18 +62,18 @@
             <el-col :span="12">
               <span>历史分析：</span>
             </el-col>
-            <el-col :span="12" v-if="tableData.length == 0">
+            <el-col :span="12" v-if="tableData.data.length == 0">
               <span>无相关记录</span>
             </el-col>
           </el-row>
         </div>
       </div>
 
-      <div class="input" v-if="tableData.length > 0">
+      <div class="input" v-if="tableData.data.length > 0">
         <div class="wrapper">
           <el-row>
             <el-table
-              :data="tableData"
+              :data="tableData.data"
               style="width: 100%"
               height="450"
               tableLayout="fixed"
@@ -106,12 +106,13 @@
 </template>
 
 <script>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import axios from "axios";
-import { ElLoading, ElMessage } from "element-plus";
+import { ElLoading, ElMessage, ElNotification } from "element-plus";
 
 export default {
   setup() {
+    // 预设的文本
     const placeholder = reactive([
       "今天天气真好，心情舒畅！",
       "一出门摔了一跤，真是服了。",
@@ -121,6 +122,7 @@ export default {
     const curIndex = ref(0);
     const input = ref("");
 
+    // 预设之间切换文本
     function changeInput() {
       curIndex.value = (curIndex.value + 1) % placeholder.length;
       input.value = "";
@@ -130,32 +132,32 @@ export default {
       {
         imgUrl: require("@/assets/happy.svg"),
         label: "积极",
-        style: "color:#d81e06; text-align:center; font-weight:bold;"
+        style: "color:#d81e06; text-align:center; font-weight:bold;",
       },
       {
         imgUrl: require("@/assets/mad.svg"),
         label: "愤怒",
-        style: "color:#d81e06; text-align:center; font-weight:bold;"
+        style: "color:#d81e06; text-align:center; font-weight:bold;",
       },
       {
         imgUrl: require("@/assets/sad.svg"),
         label: "悲伤",
-        style: "color:#000000; text-align:center; font-weight:bold;"
+        style: "color:#000000; text-align:center; font-weight:bold;",
       },
       {
         imgUrl: require("@/assets/fear.svg"),
         label: "恐惧",
-        style: "color:#000000; text-align:center; font-weight:bold;"
+        style: "color:#000000; text-align:center; font-weight:bold;",
       },
       {
         imgUrl: require("@/assets/surprised.svg"),
         label: "惊奇",
-        style: "color:#75EAE4; text-align:center; font-weight:bold;"
+        style: "color:#75EAE4; text-align:center; font-weight:bold;",
       },
       {
         imgUrl: require("@/assets/neutral.svg"),
         label: "无情绪",
-        style: "color:#000000; text-align:center; font-weight:bold;"
+        style: "color:#000000; text-align:center; font-weight:bold;",
       },
     ]);
 
@@ -163,7 +165,8 @@ export default {
 
     // 需要显示loading的dom元素
     const loading = ref(null);
-
+    
+    // 分析文本情感
     function analysis() {
       if (input.value == "") {
         input.value = placeholder[curIndex.value];
@@ -189,81 +192,104 @@ export default {
             message: "分析完成",
             type: "success",
             appendTo: loading.value,
-            center: true
+            center: true,
           });
+          // 添加历史记录
+          setHistory(input.value, imgUrlAndLabel[resultId.value].label);
         })
         .catch(function (error) {
           console.log(error);
         });
     }
 
-    const tableData = reactive([
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅!",
-        result: "sad",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-      {
-        date: "2016-05-03",
-        content: "今天天气真好，心情舒畅！",
-        result: "happy",
-      },
-    ]);
+    // 历史记录
+    const tableData = reactive({
+      data: [
+        {
+          date: "2016-05-03",
+          content: "今天天气真好，心情舒畅!",
+          result: "sad",
+        },
+        {
+          date: "2016-05-03",
+          content: "今天天气真好，心情舒畅！",
+          result: "happy",
+        },
+        {
+          date: "2016-05-03",
+          content: "今天天气真好，心情舒畅！",
+          result: "happy",
+        },
+      ],
+    });
 
+    // 获取当前时间： 2023-03-17 13:21:00
+    function getNowDate() {
+      var myDate = new Date();
+      var year = myDate.getFullYear(); //获取当前年
+      var mon = myDate.getMonth() + 1; //获取当前月
+      var date = myDate.getDate(); //获取当前日
+      var hours = myDate.getHours(); //获取当前小时
+      var minutes = myDate.getMinutes(); //获取当前分钟
+      var seconds = myDate.getSeconds(); //获取当前秒
+      var now =
+        year +
+        "-" +
+        mon +
+        "-" +
+        date +
+        " " +
+        hours +
+        ":" +
+        minutes +
+        ":" +
+        seconds;
+      return now;
+    }
+
+    // 添加一条历史记录
+    function setHistory(content, label) {
+      console.log(tableData.data);
+      if (tableData.data.length >= 20) {
+        tableData.data.pop();
+      }
+      tableData.data.unshift({
+        date: getNowDate(),
+        content: content,
+        result: label,
+      });
+      localStorage.setItem(
+        "sentimentAnalysisHistory",
+        JSON.stringify(tableData.data)
+      );
+    }
+
+    // 移除一条历史记录
     function removeOneHistory(index) {
       console.log(index);
-      tableData.splice(index, 1);
+      tableData.data.splice(index, 1);
+      localStorage.setItem(
+        "sentimentAnalysisHistory",
+        JSON.stringify(tableData.data)
+      );
+      ElNotification({
+        title: "Success",
+        message: "成功删除一条记录",
+        type: "success",
+      });
     }
+
+    // 加载时获取历史记录
+    onMounted(() => {
+      var history = JSON.parse(
+        localStorage.getItem("sentimentAnalysisHistory")
+      );
+      if (history != null) {
+        tableData.data = history;
+      }
+    });
+
+    // RETURN
     return {
       input,
       placeholder,
@@ -275,6 +301,7 @@ export default {
       resultId,
       loading,
       removeOneHistory,
+      setHistory,
     };
   },
 };
