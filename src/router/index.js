@@ -12,19 +12,19 @@ const routes = [
         // 二级路由
         children: [
             {
-                // 手动输入文字进行情感分析界面
+                // 文本情感分析
                 path: '/sentiment_analysis',
                 name: 'sentiment_analysis',
                 component:()=>import(/*webpackChunkName:'sentiment_analysis'*/'@/components/menu_1_page/sentiment_analysis.vue')
             },
             {
-                // 输入微博id进行分析
+                // 微博情感分析
                 path: '/analysis_by_weibo_id',
                 name: 'analysis_by_weibo_id',
                 component:()=>import(/*webpackChunkName:'sentiment_analysis'*/'@/components/menu_2_page/analysis_by_weibo_id.vue')
             },
             {
-                // 分析微博用户
+                // 微博用户情感分析
                 path: '/analysis_weibo_user',
                 name: 'analysis_weibo_user',
                 component:()=>import(/*webpackChunkName:'sentiment_analysis'*/'@/components/menu_3_page/analysis_weibo_user.vue')

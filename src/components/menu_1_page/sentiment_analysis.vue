@@ -38,7 +38,7 @@
             <el-button type="primary" @click="analysis">开始分析</el-button>
           </el-col>
         </el-row>
-        <el-row align="middle" id="result">
+        <el-row align="middle" id="result" v-if="resultId != -1">
           <el-col :span="3">情感分析结果</el-col>
           <el-col :span="1">
             <el-image
@@ -161,7 +161,7 @@ export default {
       },
     ]);
 
-    const resultId = ref(0);
+    const resultId = ref(-1);
 
     // 需要显示loading的dom元素
     const loading = ref(null);

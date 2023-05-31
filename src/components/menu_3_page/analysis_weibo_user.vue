@@ -1,8 +1,8 @@
 <template>
   <div>
-    <el-scrollbar max-height="1000px" height="1000px">
+    <el-scrollbar height="900px">
       <!--输入部分-->
-      <div class="wrapper">
+      <div class="wrapper" ref="userInfoLoading">
         <div class="shadow">
           <el-form :inline="true" :model="input">
             <div class="margin-bottom-0">
@@ -23,7 +23,7 @@
       </div>
 
       <!--用户信息界面-->
-      <div class="wrapper" ref="userInfoLoading">
+      <div class="wrapper"  v-if="weiboItems.length != 0">
         <div class="shadow">
           <el-row>
             <el-col :span="12">
@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <div class="wrapper">
+      <div class="wrapper" v-if="weiboItems.length != 0">
         <div class="shadow">
           <el-row
             style="text-align: center; font-weight: bold"
@@ -142,7 +142,7 @@
             </el-col>
             <el-col :span="23" id="user-info">
               <el-row>
-                <span id="nickname">{{ weiboUser.nick_name }}</span>
+                <span id="nickname-small">{{ weiboUser.nick_name }}</span>
               </el-row>
               <el-row id="desc">
                 <span style="margin: 0 5px 0 0">{{
@@ -249,7 +249,7 @@ export default {
         // 一定得写loading.value 因为是ref
         target: userInfoLoading.value,
         fullscreen: false,
-        text: "Loading",
+        text: "",
       });
       axios
         .post("/Api/user_analysis", {
@@ -585,12 +585,20 @@ export default {
   font-weight: bold;
 }
 
+#nickname-small {
+  font-size: 14px;
+  height: 25px;
+  font-weight: bold;
+}
+
 #desc {
-  font-size: 15px;
+  font-size: 12px;
   color: #939393;
 }
 
 #result {
   margin: 10px 0 0 0;
 }
+
+
 </style>

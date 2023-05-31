@@ -59,14 +59,14 @@ export default {
       {
         id: "2",
         icon: shallowRef(Search),
-        title: "微博id分析",
+        title: "微博情感分析",
         router: "analysis_by_weibo_id",
         subMenu: [], // 是否有二级菜单
       },
       {
         id: "3",
         icon: shallowRef(User),
-        title: "分析微博用户",
+        title: "微博用户情感分析",
         router: "analysis_weibo_user",
         subMenu: [], // 是否有二级菜单
       },

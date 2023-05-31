@@ -100,7 +100,7 @@
             <el-table
               :data="tableData.data"
               style="width: 100%"
-              height="450"
+              height="400"
               tableLayout="fixed"
               stripe
             >
@@ -134,7 +134,7 @@
 <script>
 import { ref, reactive, onMounted } from "vue";
 import axios from "axios";
-import { ElLoading, ElMessage } from "element-plus";
+import { ElLoading, ElMessage, ElNotification } from "element-plus";
 
 export default {
   setup() {
@@ -285,17 +285,7 @@ export default {
     // 历史记录
     const tableData = reactive({
       data: [
-        {
-          weiboId: "123",
-          date: "2016-05-03",
-          content: "今天天气真好，心情舒畅!",
-          result: "sad",
-        },
-        {
-          date: "2016-05-03",
-          content: "今天天气真好，心情舒畅！",
-          result: "happy",
-        },
+     
       ],
     });
 
@@ -345,6 +335,15 @@ export default {
     function removeOneHistory(index) {
       console.log(index);
       tableData.data.splice(index, 1);
+      localStorage.setItem(
+        "singleTweetAnalysisHistory",
+        JSON.stringify(tableData.data)
+      );
+      ElNotification({
+        title: "Success",
+        message: "成功删除一条记录",
+        type: "success",
+      });
     }
 
     // 加载的时候读取历史记录
@@ -391,7 +390,7 @@ export default {
 }
 
 #user-info .el-row {
-  padding-left: 10px;
+  padding-left: 15px;
 }
 
 #nickname {
